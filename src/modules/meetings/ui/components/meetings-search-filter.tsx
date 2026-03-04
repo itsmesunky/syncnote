@@ -2,16 +2,16 @@ import { SearchIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 
-import { useAgentsFilters } from "../../hooks/use-agents-filters";
+import { useMeetingsFilters } from "../../hooks/use-meetings-filters";
 
-export const AgentsSearchFilter = () => {
-  const [filters, setFilters] = useAgentsFilters();
+export const MeetingsSearchFilter = () => {
+  const [filters, setFilters] = useMeetingsFilters();
 
   return (
     <div className="relative">
       <Input
-        className="h-9 bg-white w-60 pl-7"
-        placeholder="에이전트 이름을 입력해 주세요"
+        placeholder="면접명을 입력해 주세요"
+        className="h-9 bg-white w-[200px] pl-7"
         value={filters.search}
         onChange={(e) => setFilters({ search: e.target.value })}
       />

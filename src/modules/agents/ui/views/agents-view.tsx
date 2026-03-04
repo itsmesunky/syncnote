@@ -8,9 +8,9 @@ import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { useTRPC } from "@/trpc/client";
 
+import { DataPagination } from "../../../../components/data-pagination";
 import { useAgentsFilters } from "../../hooks/use-agents-filters";
 import { columns } from "../components/columns";
-import { DataPagination } from "../components/data-pagination";
 
 export const AgentsView = () => {
   const trpc = useTRPC();

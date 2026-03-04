@@ -73,7 +73,7 @@ export const AgentIdView = ({ agentId }: Props) => {
             <Badge variant="outline" className="flex items-center gap-x-2 [&>svg]:size-4">
               {0 < meetingCount ? (
                 <>
-                  <VideoIcon className="text-blue-700" />총 {meetingCount}회 면접 진행
+                  <VideoIcon className="text-blue-700" />총 {meetingCount}회 면접 참여
                 </>
               ) : (
                 <>첫 면접을 기다리고 있어요</>
