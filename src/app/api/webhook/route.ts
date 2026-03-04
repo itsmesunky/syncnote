@@ -5,22 +5,85 @@ import {
   CallRecordingReadyEvent,
   CallSessionParticipantLeftEvent,
   CallSessionStartedEvent,
+  CallTranscriptionReadyEvent,
   MessageNewEvent,
 } from "@stream-io/node-sdk";
+import { RealtimeClient } from "@stream-io/openai-realtime-api";
 import { and, eq, not } from "drizzle-orm";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 
 import { db } from "@/db";
 import { agents, meetings } from "@/db/schema";
+import { inngest } from "@/inngest/client";
 import { generateAvatarUri } from "@/lib/avatar";
 import { streamChat } from "@/lib/stream-chat";
 import { streamVideo } from "@/lib/stream-video";
 
 const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
+// 활성 상태의 OpenAI Realtime 클라이언트를 메모리에 저장 (세션 유지용)
+const activeRealtimeClients = new Map<string, RealtimeClient>();
+
 function verifySignatureWithSDK(body: string, signature: string): boolean {
   return streamVideo.verifyWebhook(body, signature);
+}
+
+/**
+ * OpenAI Realtime 에이전트를 연결하고 이벤트를 처리하는 백그라운드 함수
+ */
+async function setupRealtimeConnection(meetingId: string, agentId: string, instructions: string) {
+  try {
+    const call = streamVideo.video.call("default", meetingId);
+
+    const realtimeClient = await streamVideo.video.connectOpenAi({
+      call,
+      openAiApiKey: process.env.OPENAI_API_KEY!,
+      agentUserId: agentId,
+      model: "gpt-4o-realtime-preview",
+    });
+
+    // AI 세션 설정: 음성 감지(VAD) 및 한국어 대응 설정 포함
+    realtimeClient.updateSession({
+      voice: "alloy",
+      instructions: instructions,
+      modalities: ["text", "audio"],
+      turn_detection: {
+        type: "server_vad",
+        threshold: 0.5,
+        prefix_padding_ms: 300,
+        silence_duration_ms: 500,
+      },
+      input_audio_transcription: { model: "whisper-1" },
+    });
+
+    // 이벤트 리스너 등록
+    realtimeClient.on("conversation.updated", (event: any) => {
+      console.log(`[${meetingId}] conversation.updated`, event);
+    });
+
+    realtimeClient.on("conversation.item.completed", ({ item }: any) => {
+      console.log(`[${meetingId}] conversation.item.completed`, item);
+    });
+
+    realtimeClient.on("error", (error: any) => {
+      console.error(`[${meetingId}] OpenAI Realtime Error:`, error);
+    });
+
+    // AI가 먼저 인사를 건네도록 트리거 전송
+    await realtimeClient.sendUserMessageContent([
+      {
+        type: "input_text",
+        text: "지원자가 면접장에 입장했습니다. 반갑게 인사를 건네며 모의 면접을 시작해 주세요.",
+      },
+    ]);
+
+    // 메모리에 클라이언트 저장
+    activeRealtimeClients.set(meetingId, realtimeClient);
+    console.log(`[${meetingId}] AI 에이전트 연결 성공 및 대기 중`);
+  } catch (error) {
+    console.error(`[${meetingId}] AI 연결 프로세스 실패:`, error);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -37,22 +100,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let payload: unknown;
+  let payload: any;
   try {
-    payload = JSON.parse(body) as Record<string, unknown>;
+    payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const eventType = (payload as Record<string, unknown>)?.type;
+  const eventType = payload?.type;
 
+  // 1. 면접 세션 시작 이벤트
   if (eventType === "call.session_started") {
     const event = payload as CallSessionStartedEvent;
     const meetingId = event.call.custom?.meetingId;
-
-    if (!meetingId) {
-      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
-    }
 
     const [existingMeeting] = await db
       .select()
@@ -61,7 +121,6 @@ export async function POST(req: NextRequest) {
         and(
           eq(meetings.id, meetingId),
           not(eq(meetings.status, "completed")),
-          not(eq(meetings.status, "active")),
           not(eq(meetings.status, "processing")),
         ),
       );
@@ -70,13 +129,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
     }
 
+    // 미팅 상태 업데이트
     await db
       .update(meetings)
-      .set({
-        status: "active",
-        startedAt: new Date(),
-      })
-      .where(eq(meetings.id, existingMeeting.id));
+      .set({ status: "active", startedAt: new Date() })
+      .where(eq(meetings.id, meetingId));
 
     const [existingAgent] = await db
       .select()
@@ -87,56 +144,78 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    const call = streamVideo.video.call("default", meetingId);
-    const realtimeClient = await streamVideo.video.connectOpenAi({
-      call,
-      openAiApiKey: process.env.OPENAI_API_KEY!,
-      agentUserId: existingAgent.id,
-    });
+    // AI 연결 프로세스 실행 (백그라운드)
+    setupRealtimeConnection(meetingId, existingAgent.id, existingAgent.instructions).catch((err) =>
+      console.error("Setup 실패:", err),
+    );
 
-    realtimeClient.updateSession({
-      instructions: existingAgent.instructions,
-    });
-  } else if (eventType === "call.session_participant_left") {
+    return NextResponse.json({ status: "ok" });
+  }
+
+  // 2. 참여자가 나갔을 때
+  else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1];
 
-    if (!meetingId) {
-      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+    if (meetingId) {
+      const call = streamVideo.video.call("default", meetingId);
+      await call.end();
     }
+  }
 
-    const call = streamVideo.video.call("default", meetingId);
-    await call.end();
-  } else if (eventType === "call.session_ended") {
+  // 3. 면접 세션 종료 이벤트
+  else if (eventType === "call.session_ended") {
     const event = payload as CallEndedEvent;
-    const meetingId = event.call.custom?.meetingId;
+    const meetingId = event.call.id;
 
-    if (!meetingId) {
-      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+    // AI 연결 해제 및 메모리 정리
+    if (activeRealtimeClients.has(meetingId)) {
+      activeRealtimeClients.delete(meetingId);
+      console.log(`[${meetingId}] 세션 종료로 인한 AI 클라이언트 제거 완료`);
     }
 
     await db
       .update(meetings)
-      .set({
-        status: "processing",
-        endedAt: new Date(),
-      })
+      .set({ status: "processing", endedAt: new Date() })
       .where(and(eq(meetings.id, meetingId), eq(meetings.status, "active")));
-  } else if (eventType === "call.transcription_ready") {
-    // TODO: Inngest 사용해서 백그라운드에서 요약본 만들기
-  } else if (eventType === "call.recording_ready") {
+  }
+
+  // 4. 전사(Transcript) 준비 완료 이벤트
+  else if (eventType === "call.transcription_ready") {
+    const event = payload as CallTranscriptionReadyEvent;
+    const meetingId = event.call_cid.split(":")[1];
+
+    const [updatedMeeting] = await db
+      .update(meetings)
+      .set({ transcriptUrl: event.call_transcription.url })
+      .where(eq(meetings.id, meetingId))
+      .returning();
+
+    if (updatedMeeting) {
+      await inngest.send({
+        name: "meetings/processing",
+        data: {
+          meetingId: updatedMeeting.id,
+          transcriptUrl: updatedMeeting.transcriptUrl,
+        },
+      });
+    }
+  }
+
+  // 5. 녹화 준비 완료 이벤트
+  else if (eventType === "call.recording_ready") {
     const event = payload as CallRecordingReadyEvent;
     const meetingId = event.call_cid.split(":")[1];
 
     await db
       .update(meetings)
-      .set({
-        recordingUrl: event.call_recording.url,
-      })
+      .set({ recordingUrl: event.call_recording.url })
       .where(eq(meetings.id, meetingId));
-  } else if (eventType === "message.new") {
-    const event = payload as MessageNewEvent;
+  }
 
+  // 6. 텍스트 채팅 메시지 이벤트 (사후 피드백 채팅용)
+  else if (eventType === "message.new") {
+    const event = payload as MessageNewEvent;
     const userId = event.user?.id;
     const channelId = event.channel_id;
     const text = event.message?.text;
@@ -150,84 +229,60 @@ export async function POST(req: NextRequest) {
       .from(meetings)
       .where(and(eq(meetings.id, channelId), eq(meetings.status, "completed")));
 
-    if (!existingMeeting) {
-      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
-    }
+    if (existingMeeting) {
+      const [existingAgent] = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, existingMeeting.agentId));
 
-    const [existingAgent] = await db
-      .select()
-      .from(agents)
-      .where(eq(agents.id, existingMeeting.agentId));
+      if (existingAgent && userId !== existingAgent.id) {
+        // 기존 텍스트 채팅 로직 (GPT-4o 활용)
+        const instructions = `
+          당신은 회의 요약본을 바탕으로 사용자를 돕는 AI 어시스턴트입니다.
+          회의 요약: ${existingMeeting.summary}
+          행동 지침: ${existingAgent.instructions}
+          답변은 간결하고 정확해야 합니다.
+        `;
 
-    if (!existingAgent) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
-    }
+        const channel = streamChat.channel("messaging", channelId);
+        await channel.watch();
 
-    if (userId !== existingAgent.id) {
-      const instructions = `
-      당신은 사용자가 최근 완료된 회의를 다시 살펴볼 수 있도록 돕는 AI 어시스턴트입니다.
+        const previousMessages = channel.state.messages
+          .slice(-5)
+          .filter((msg) => msg.text && msg.text.trim() !== "")
+          .map<ChatCompletionMessageParam>((message) => ({
+            role: message.user?.id === existingAgent.id ? "assistant" : "user",
+            content: message.text || "",
+          }));
 
-      아래는 회의록(transcript)을 바탕으로 생성된 회의 요약본입니다:
-      ${existingMeeting.summary}
+        const GPTResponse = await openaiClient.chat.completions.create({
+          messages: [
+            { role: "system", content: instructions },
+            ...previousMessages,
+            { role: "user", content: text },
+          ],
+          model: "gpt-4o",
+        });
 
-      다음은 실시간 회의 어시스턴트에서 전달된 귀하의 원래 지침입니다. 사용자를 지원할 때 아래의 행동 지침을 계속해서 따라주세요:
-      ${existingAgent.instructions}
-      
-      사용자는 회의와 관련된 질문을 하거나, 추가 설명을 요구하거나, 후속 조치를 요청할 수 있습니다.
-      항상 위의 회의 요약본을 바탕으로 답변을 작성하십시오.
-      또한 당신은 사용자와 나눈 최근 대화 기록에 접근할 수 있습니다.
-      이전 메시지의 문맥을 활용하여 관련성 있고 일관되며 유용한 답변을 제공하십시오.
-      사용자의 질문이 이전에 논의된 내용과 관련이 있다면, 이를 반드시 고려하여 대화의 연속성을 유지하십시오.
-      
-      질문에 답변하기에 요약본의 정보가 충분하지 않다면, 사용자에게 정중하게 해당 사실을 알려주십시오.
-      답변은 간결하고 도움이 되어야 하며, 회의 내용 및 진행 중인 대화를 바탕으로 정확한 정보를 제공하는 데 집중하십시오.
-      `;
+        const GPTResponseText = GPTResponse.choices[0].message.content;
 
-      const channel = streamChat.channel("messaging", channelId);
-      await channel.watch();
+        if (GPTResponseText) {
+          const avatarUrl = generateAvatarUri({
+            seed: existingAgent.name,
+            variant: "botttsNeutral",
+          });
 
-      const previousMessages = channel.state.messages
-        .slice(-5)
-        .filter((msg) => msg.text && msg.text.trim() !== "")
-        .map<ChatCompletionMessageParam>((message) => ({
-          role: message.user?.id === existingAgent.id ? "assistant" : "user",
-          content: message.text || "",
-        }));
-
-      const GPTResponse = await openaiClient.chat.completions.create({
-        messages: [
-          { role: "system", content: instructions },
-          ...previousMessages,
-          { role: "user", content: text },
-        ],
-        model: "gpt-4o",
-      });
-
-      const GPTResponseText = GPTResponse.choices[0].message.content;
-
-      if (!GPTResponseText) {
-        return NextResponse.json({ error: "No response from GPT" }, { status: 400 });
+          await streamChat.upsertUser({
+            id: existingAgent.id,
+            name: existingAgent.name,
+            image: avatarUrl,
+          });
+          await channel.sendMessage({
+            text: GPTResponseText,
+            user: { id: existingAgent.id, name: existingAgent.name, image: avatarUrl },
+          });
+        }
       }
-
-      const avatarUrl = generateAvatarUri({
-        seed: existingAgent.name,
-        variant: "botttsNeutral",
-      });
-
-      streamChat.upsertUser({
-        id: existingAgent.id,
-        name: existingAgent.name,
-        image: avatarUrl,
-      });
-
-      channel.sendMessage({
-        text: GPTResponseText,
-        user: {
-          id: existingAgent.id,
-          name: existingAgent.name,
-          image: avatarUrl,
-        },
-      });
     }
   }
 

@@ -10,6 +10,8 @@ export function formatDuration(seconds: number) {
   return humanizeDuration(seconds * 1000, {
     largest: 1,
     round: true,
+    spacer: "",
     units: ["h", "m", "s"],
+    language: "ko",
   });
 }
