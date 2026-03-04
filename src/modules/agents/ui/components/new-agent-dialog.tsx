@@ -1,3 +1,5 @@
+"use client";
+
 import { ResponsiveDialog } from "@/components/responsive-dialog";
 
 import { AgentForm } from "./agent-form";
@@ -10,8 +12,8 @@ interface Props {
 export const NewAgentDialog = ({ open, onOpenChange }: Props) => {
   return (
     <ResponsiveDialog
-      title="새로운 에이전트"
-      description="새로운 에이전트를 추가해 보세요"
+      title="에이전트 생성"
+      description="새로운 모의 면접 에이전트를 생성합니다."
       open={open}
       onOpenChange={onOpenChange}
     >
