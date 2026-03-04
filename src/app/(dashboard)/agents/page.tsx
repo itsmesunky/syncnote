@@ -41,7 +41,7 @@ const Page = async ({ searchParams }: Props) => {
           fallback={
             <FallbackState
               type="loading"
-              title="에이전트를 불러오고 있어요."
+              title="생성한 에이전트를 불러오고 있어요."
               description="데이터를 불러오는 데 몇 초 정도 소요될 수 있습니다."
             />
           }
@@ -50,8 +50,8 @@ const Page = async ({ searchParams }: Props) => {
             fallback={
               <FallbackState
                 type="error"
-                title="에이전트를 불러오지 못했어요. 😭"
-                description="일시적인 오류가 발생했습니다."
+                title="생성한 에이전트를 불러오는 데 실패했어요."
+                description={"일시적인 오류가 발생했습니다. \n 새로고침 하여 다시 시도해 주세요."}
               />
             }
           >
