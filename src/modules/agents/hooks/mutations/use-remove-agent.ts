@@ -11,7 +11,7 @@ export const useRemoveAgent = (callbacks?: UseMutationCallback) => {
     trpc.agents.remove.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
-        // TODO: 결제 기능 추가 시, 한도 변경
+        await queryClient.invalidateQueries(trpc.premium.getFreeUsage.queryOptions());
         if (callbacks?.onSuccess) callbacks.onSuccess();
       },
       onError: (error) => {

@@ -11,11 +11,10 @@ export const useCreateMeeting = (callbacks?: UseMutationCallback) => {
     trpc.meetings.create.mutationOptions({
       onSuccess: async ({ id }) => {
         await queryClient.invalidateQueries(trpc.meetings.getMany.queryOptions({}));
-        // TODO: 결제 기능 추가 시, 한도 적용
+        await queryClient.invalidateQueries(trpc.premium.getFreeUsage.queryOptions());
         if (callbacks?.onSuccess) callbacks.onSuccess(id);
       },
       onError: (error) => {
-        // TODO: 결제 기능 추가 시, 한도 적용
         if (callbacks?.onError) callbacks.onError(error);
       },
     }),

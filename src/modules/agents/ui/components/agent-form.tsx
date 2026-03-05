@@ -38,8 +38,6 @@ export const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
       toast.error(error.message, {
         position: "top-center",
       });
-
-      // TODO: 사용 한도 관련 코드 체크
       if (error.data?.code === "FORBIDDEN") router.push("/upgrade");
     },
   });
