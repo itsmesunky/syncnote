@@ -1,4 +1,4 @@
-import { TextMessage, createAgent, gemini } from "@inngest/agent-kit";
+import { TextMessage, createAgent, openai } from "@inngest/agent-kit";
 import { eq, inArray } from "drizzle-orm";
 import JSONL from "jsonl-parse-stringify";
 
@@ -36,7 +36,7 @@ const summarizer = createAgent({
   - 면접관의 코멘트 (잘된 점 또는 아쉬운 점)
   - 꼬리 질문으로 대비하면 좋을 추가 CS 지식 (예: 브라우저 렌더링 최적화, 네트워크 통신 구조 등)
   `.trim(),
-  model: gemini({ model: "gemini-2.5-flash", apiKey: process.env.OPENAI_API_KEY }),
+  model: openai({ model: "gpt-4o", apiKey: process.env.OPENAI_API_KEY }),
 });
 
 export const meetingsProcessing = inngest.createFunction(
