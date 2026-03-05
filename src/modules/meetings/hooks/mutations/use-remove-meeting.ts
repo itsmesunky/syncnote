@@ -11,7 +11,7 @@ export const useRemoveMeeting = (callbacks?: UseMutationCallback) => {
     trpc.meetings.remove.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(trpc.meetings.getMany.queryOptions({}));
-        // TODO: 결제 기능 추가 시, 사용 한도 변경
+        await queryClient.invalidateQueries(trpc.premium.getFreeUsage.queryOptions());
         if (callbacks?.onSuccess) callbacks.onSuccess();
       },
       onError: (error) => {

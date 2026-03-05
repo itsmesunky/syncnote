@@ -5,7 +5,7 @@ import z from "zod";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@/constants";
 import { db } from "@/db";
 import { agents, meetings } from "@/db/schema";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/init";
 
 import { agentsInsertSchema, agentsUpdateSchema } from "../schemas";
 
@@ -70,18 +70,19 @@ export const agentsRouter = createTRPCRouter({
         totalPages,
       };
     }),
-  // TODO: 결제 기능 추가 시, 프로시저 변경
-  create: protectedProcedure.input(agentsInsertSchema).mutation(async ({ input, ctx }) => {
-    const [createdAgent] = await db
-      .insert(agents)
-      .values({
-        ...input,
-        userId: ctx.auth.user.id,
-      })
-      .returning();
+  create: premiumProcedure("agents")
+    .input(agentsInsertSchema)
+    .mutation(async ({ input, ctx }) => {
+      const [createdAgent] = await db
+        .insert(agents)
+        .values({
+          ...input,
+          userId: ctx.auth.user.id,
+        })
+        .returning();
 
-    return createdAgent;
-  }),
+      return createdAgent;
+    }),
   update: protectedProcedure.input(agentsUpdateSchema).mutation(async ({ ctx, input }) => {
     const [updatedAgent] = await db
       .update(agents)
