@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+
+  <path 
+    d="M100,60 
+       h312 a50,50 0 0,1 50,50 
+       v212 a50,50 0 0,1 -50,50 
+       h-150 l-80,80 l20,-80 h-102 
+       a50,50 0 0,1 -50,-50 
+       v-212 a50,50 0 0,1 50,-50 z" 
+    fill="url(#bg-gradient)" 
+  />
+
+  <g fill="#FFFFFF">
+    <rect x="156" y="176" width="40" height="80" rx="20" />
+    <rect x="236" y="136" width="40" height="160" rx="20" />
+    <rect x="316" y="156" width="40" height="120" rx="20" />
+  </g>
+</svg>
