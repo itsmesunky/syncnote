@@ -11,16 +11,28 @@ export const CallView = ({ meetingId }: { meetingId: string }) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.meetings.getOne.queryOptions({ id: meetingId }));
 
-  if (data.status !== "upcoming") {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <FallbackState
-          type="error"
-          title="면접이 종료되었어요"
-          description="더 이상 이 면접에 참여하실 수 없습니다."
-        />
-      </div>
-    );
+  switch (data.status) {
+    case "active":
+      return (
+        <div className="flex h-screen items-center justify-center">
+          <FallbackState
+            type="error"
+            title="면접이 진행 중입니다."
+            description="이미 진행 중인 면접에는 참여하실 수 없습니다."
+          />
+        </div>
+      );
+    case "completed":
+    case "processing":
+      return (
+        <div className="flex h-screen items-center justify-center">
+          <FallbackState
+            type="error"
+            title="종료된 면접입니다."
+            description="이 면접은 이미 종료되어 더 이상 참여하실 수 없습니다."
+          />
+        </div>
+      );
   }
 
   return <CallProvider meetingId={meetingId} meetingName={data.name} />;

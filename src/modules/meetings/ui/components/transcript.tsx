@@ -26,10 +26,10 @@ export const Transcript = ({ meetingId }: Props) => {
 
   return (
     <div className="bg-white rounded-lg border px-4 py-5 flex flex-col gap-y-4 w-full">
-      <p className="text-sm font-medium">Transcript</p>
+      <p className="text-sm font-medium">대화 내용</p>
       <div className="relative">
         <Input
-          placeholder="Search Transcript"
+          placeholder="내용을 검색해 보세요"
           className="pl-7 h-9 w-60"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
