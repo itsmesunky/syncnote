@@ -51,7 +51,7 @@ const Page = async ({ searchParams }: Props) => {
               <FallbackState
                 type="error"
                 title="생성한 에이전트를 불러오는 데 실패했어요."
-                description={"일시적인 오류가 발생했습니다. \n 새로고침 하여 다시 시도해 주세요."}
+                description={"일시적인 오류가 발생했습니다. \n 잠시 후 다시 시도해 주세요."}
               />
             }
           >
