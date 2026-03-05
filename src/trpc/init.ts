@@ -61,14 +61,14 @@ export const premiumProcedure = (entity: "meetings" | "agents") =>
     if (shouldThrowMeetingError) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "You have reached the maximum number of free meetings",
+        message: "무료 미팅 한도에 도달했습니다.",
       });
     }
 
     if (shouldThrowAgentError) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "You have reached the maximum number of free agents",
+        message: "무료 에이전트 한도에 도달했습니다.",
       });
     }
 
