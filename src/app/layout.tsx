@@ -27,7 +27,7 @@ export default function RootLayout({
     <NuqsAdapter>
       <TRPCReactProvider>
         <html lang="ko">
-          <body className={pretendard.className}>
+          <body className={`${pretendard.className} antialiased`}>
             <Toaster />
             {children}
           </body>

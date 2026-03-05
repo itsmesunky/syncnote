@@ -43,7 +43,7 @@ export const CompletedState = ({ data }: Props) => {
                 className="text-muted-foreground rounded-none bg-background data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:text-accent-foreground h-full hover:text-accent-foreground"
               >
                 <FileTextIcon />
-                대본
+                대화 내용
               </TabsTrigger>
               <TabsTrigger
                 value="recording"
@@ -57,7 +57,7 @@ export const CompletedState = ({ data }: Props) => {
                 className="text-muted-foreground rounded-none bg-background data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:text-accent-foreground h-full hover:text-accent-foreground"
               >
                 <SparklesIcon />
-                AI에게 물어보기
+                Ask AI
               </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
@@ -90,11 +90,11 @@ export const CompletedState = ({ data }: Props) => {
                   />
                   {data.agent.name}
                 </Link>{" "}
-                <p>{data.startedAt ? format(data.startedAt, "PPP") : ""}</p>
+                <p>{data.startedAt ? format(data.startedAt, "yyyy-MM-dd HH:mm") : ""}</p>
               </div>
               <div className="flex gap-x-2 items-center">
                 <SparklesIcon className="size-4" />
-                <p>General summary</p>
+                <p>종합 요약</p>
               </div>
               <Badge variant="outline" className="flex items-center gap-x-2 [&>svg]:size-4">
                 <ClockFadingIcon className="text-blue-700" />

@@ -46,10 +46,10 @@ export const MeetingIdView = ({ meetingId }: Props) => {
     await removeMeeting({ id: meetingId });
   };
 
-  const isActive = data.status === "active";
   const isUpcoming = data.status === "upcoming";
-  const isCompleted = data.status === "completed";
+  const isActive = data.status === "active";
   const isProcessing = data.status === "processing";
+  const isCompleted = data.status === "completed";
 
   return (
     <>
@@ -66,10 +66,10 @@ export const MeetingIdView = ({ meetingId }: Props) => {
           onEdit={() => setUpdateMeetingDialogOpen(true)}
           onRemove={handleRemoveMeeting}
         />
+        {isUpcoming && <UpcomingState meetingId={meetingId} />}
+        {isActive && <ActiveState />}
         {isProcessing && <ProcessingState />}
         {isCompleted && <CompletedState data={data} />}
-        {isActive && <ActiveState meetingId={meetingId} />}
-        {isUpcoming && <UpcomingState meetingId={meetingId} />}
       </div>
     </>
   );

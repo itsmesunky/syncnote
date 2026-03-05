@@ -7,6 +7,7 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@
 import { db } from "@/db";
 import { agents, meetings, user } from "@/db/schema";
 import { generateAvatarUri } from "@/lib/avatar";
+import { streamChat } from "@/lib/stream-chat";
 import { streamVideo } from "@/lib/stream-video";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 
@@ -14,6 +15,15 @@ import { meetingsInsertSchema, meetingsUpdateSchema } from "../schemas";
 import { MeetingStatus, StreamTranscriptItem } from "../types";
 
 export const meetingsRouter = createTRPCRouter({
+  generateChatToken: protectedProcedure.mutation(async ({ ctx }) => {
+    const token = streamChat.createToken(ctx.auth.user.id);
+    await streamChat.upsertUser({
+      id: ctx.auth.user.id,
+      role: "admin",
+    });
+
+    return token;
+  }),
   generateToken: protectedProcedure.mutation(async ({ ctx }) => {
     await streamVideo.upsertUsers([
       {
@@ -135,7 +145,7 @@ export const meetingsRouter = createTRPCRouter({
         },
         settings_override: {
           transcription: {
-            language: "en",
+            language: "ko",
             mode: "auto-on",
             closed_caption_mode: "auto-on",
           },

@@ -27,7 +27,7 @@ const Page = async ({ params }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <CallView meetingId={meetingId} />;
+      <CallView meetingId={meetingId} />
     </HydrationBoundary>
   );
 };

@@ -9,10 +9,13 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from "@stream-io/video-react-sdk";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 
 import { useTRPC } from "@/trpc/client";
+
+import { CallUI } from "./call-ui";
 
 interface Props {
   meetingId: string;
@@ -78,7 +81,7 @@ export const CallConnect = ({ meetingId, meetingName, userId, userName, userImag
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <>TODO: UI 추가</>
+        <CallUI meetingName={meetingName} />
       </StreamCall>
     </StreamVideo>
   );
