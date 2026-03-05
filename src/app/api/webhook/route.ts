@@ -22,17 +22,15 @@ import { streamVideo } from "@/lib/stream-video";
 
 const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-// 활성 상태의 OpenAI Realtime 클라이언트를 메모리에 저장 (세션 유지용)
-const activeRealtimeClients = new Map<string, RealtimeClient>();
-
-function verifySignatureWithSDK(body: string, signature: string): boolean {
+const verifySignatureWithSDK = (body: string, signature: string) => {
   return streamVideo.verifyWebhook(body, signature);
-}
+};
 
-/**
- * OpenAI Realtime 에이전트를 연결하고 이벤트를 처리하는 백그라운드 함수
- */
-async function setupRealtimeConnection(meetingId: string, agentId: string, instructions: string) {
+const setupRealtimeConnection = async (
+  meetingId: string,
+  agentId: string,
+  instructions: string,
+) => {
   try {
     const call = streamVideo.video.call("default", meetingId);
 
@@ -43,48 +41,28 @@ async function setupRealtimeConnection(meetingId: string, agentId: string, instr
       model: "gpt-4o-realtime-preview",
     });
 
-    // AI 세션 설정: 음성 감지(VAD) 및 한국어 대응 설정 포함
     realtimeClient.updateSession({
+      instructions,
       voice: "alloy",
-      instructions: instructions,
-      modalities: ["text", "audio"],
       turn_detection: {
         type: "server_vad",
         threshold: 0.5,
         prefix_padding_ms: 300,
-        silence_duration_ms: 500,
+        silence_duration_ms: 1000,
       },
-      input_audio_transcription: { model: "whisper-1" },
+      input_audio_transcription: { model: "whisper-1" }, // STT
     });
 
-    // 이벤트 리스너 등록
-    realtimeClient.on("conversation.updated", (event: any) => {
-      console.log(`[${meetingId}] conversation.updated`, event);
-    });
-
-    realtimeClient.on("conversation.item.completed", ({ item }: any) => {
-      console.log(`[${meetingId}] conversation.item.completed`, item);
-    });
-
-    realtimeClient.on("error", (error: any) => {
-      console.error(`[${meetingId}] OpenAI Realtime Error:`, error);
-    });
-
-    // AI가 먼저 인사를 건네도록 트리거 전송
-    await realtimeClient.sendUserMessageContent([
+    realtimeClient.sendUserMessageContent([
       {
         type: "input_text",
         text: "지원자가 면접장에 입장했습니다. 반갑게 인사를 건네며 모의 면접을 시작해 주세요.",
       },
     ]);
-
-    // 메모리에 클라이언트 저장
-    activeRealtimeClients.set(meetingId, realtimeClient);
-    console.log(`[${meetingId}] AI 에이전트 연결 성공 및 대기 중`);
   } catch (error) {
-    console.error(`[${meetingId}] AI 연결 프로세스 실패:`, error);
+    console.error(`[${meetingId}]: AI 연결 프로세스 실패: `, error);
   }
-}
+};
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-signature");
@@ -100,19 +78,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let payload: any;
+  let payload: unknown;
   try {
-    payload = JSON.parse(body);
-  } catch {
+    payload = JSON.parse(body) as Record<string, unknown>;
+  } catch (error) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const eventType = payload?.type;
+  const eventType = (payload as Record<string, unknown>)?.type;
 
-  // 1. 면접 세션 시작 이벤트
   if (eventType === "call.session_started") {
     const event = payload as CallSessionStartedEvent;
-    const meetingId = event.call.custom?.meetingId;
+    const meetingId = event.call.custom.meetingId;
+
+    if (!meetingId) {
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+    }
 
     const [existingMeeting] = await db
       .select()
@@ -120,6 +101,7 @@ export async function POST(req: NextRequest) {
       .where(
         and(
           eq(meetings.id, meetingId),
+          not(eq(meetings.status, "active")),
           not(eq(meetings.status, "completed")),
           not(eq(meetings.status, "processing")),
         ),
@@ -129,7 +111,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
     }
 
-    // 미팅 상태 업데이트
     await db
       .update(meetings)
       .set({ status: "active", startedAt: new Date() })
@@ -144,44 +125,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    // AI 연결 프로세스 실행 (백그라운드)
-    setupRealtimeConnection(meetingId, existingAgent.id, existingAgent.instructions).catch((err) =>
-      console.error("Setup 실패:", err),
-    );
-
-    return NextResponse.json({ status: "ok" });
-  }
-
-  // 2. 참여자가 나갔을 때
-  else if (eventType === "call.session_participant_left") {
+    try {
+      await setupRealtimeConnection(meetingId, existingAgent.id, existingAgent.instructions);
+    } catch (error) {
+      console.error("Setup 실패: ", error);
+    }
+  } else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1];
 
-    if (meetingId) {
-      const call = streamVideo.video.call("default", meetingId);
-      await call.end();
+    if (!meetingId) {
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
-  }
 
-  // 3. 면접 세션 종료 이벤트
-  else if (eventType === "call.session_ended") {
+    const call = streamVideo.video.call("default", meetingId);
+    await call.end();
+  } else if (eventType === "call.session_ended") {
     const event = payload as CallEndedEvent;
-    const meetingId = event.call.id;
+    const meetingId = event.call.custom.meetingId;
 
-    // AI 연결 해제 및 메모리 정리
-    if (activeRealtimeClients.has(meetingId)) {
-      activeRealtimeClients.delete(meetingId);
-      console.log(`[${meetingId}] 세션 종료로 인한 AI 클라이언트 제거 완료`);
+    if (!meetingId) {
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
 
     await db
       .update(meetings)
       .set({ status: "processing", endedAt: new Date() })
       .where(and(eq(meetings.id, meetingId), eq(meetings.status, "active")));
-  }
-
-  // 4. 전사(Transcript) 준비 완료 이벤트
-  else if (eventType === "call.transcription_ready") {
+  } else if (eventType === "call.transcription_ready") {
     const event = payload as CallTranscriptionReadyEvent;
     const meetingId = event.call_cid.split(":")[1];
 
@@ -191,19 +162,18 @@ export async function POST(req: NextRequest) {
       .where(eq(meetings.id, meetingId))
       .returning();
 
-    if (updatedMeeting) {
-      await inngest.send({
-        name: "meetings/processing",
-        data: {
-          meetingId: updatedMeeting.id,
-          transcriptUrl: updatedMeeting.transcriptUrl,
-        },
-      });
+    if (!updatedMeeting) {
+      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
     }
-  }
 
-  // 5. 녹화 준비 완료 이벤트
-  else if (eventType === "call.recording_ready") {
+    await inngest.send({
+      name: "meetings/processing",
+      data: {
+        meetingId: updatedMeeting.id,
+        transcriptUrl: updatedMeeting.transcriptUrl,
+      },
+    });
+  } else if (eventType === "call.recording_ready") {
     const event = payload as CallRecordingReadyEvent;
     const meetingId = event.call_cid.split(":")[1];
 
@@ -211,13 +181,11 @@ export async function POST(req: NextRequest) {
       .update(meetings)
       .set({ recordingUrl: event.call_recording.url })
       .where(eq(meetings.id, meetingId));
-  }
-
-  // 6. 텍스트 채팅 메시지 이벤트 (사후 피드백 채팅용)
-  else if (eventType === "message.new") {
+  } else if (eventType === "message.new") {
     const event = payload as MessageNewEvent;
     const userId = event.user?.id;
     const channelId = event.channel_id;
+    const currentMessageId = event.message?.id;
     const text = event.message?.text;
 
     if (!userId || !channelId || !text) {
@@ -229,62 +197,88 @@ export async function POST(req: NextRequest) {
       .from(meetings)
       .where(and(eq(meetings.id, channelId), eq(meetings.status, "completed")));
 
-    if (existingMeeting) {
-      const [existingAgent] = await db
-        .select()
-        .from(agents)
-        .where(eq(agents.id, existingMeeting.agentId));
+    if (!existingMeeting) {
+      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
+    }
 
-      if (existingAgent && userId !== existingAgent.id) {
-        // 기존 텍스트 채팅 로직 (GPT-4o 활용)
-        const instructions = `
-          당신은 회의 요약본을 바탕으로 사용자를 돕는 AI 어시스턴트입니다.
-          회의 요약: ${existingMeeting.summary}
-          행동 지침: ${existingAgent.instructions}
-          답변은 간결하고 정확해야 합니다.
-        `;
+    const [existingAgent] = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.id, existingMeeting.agentId));
 
-        const channel = streamChat.channel("messaging", channelId);
-        await channel.watch();
+    if (!existingAgent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
 
-        const previousMessages = channel.state.messages
-          .slice(-5)
-          .filter((msg) => msg.text && msg.text.trim() !== "")
-          .map<ChatCompletionMessageParam>((message) => ({
-            role: message.user?.id === existingAgent.id ? "assistant" : "user",
-            content: message.text || "",
-          }));
+    if (userId !== existingAgent.id) {
+      const instructions = `
+      당신은 방금 전 모의 면접을 진행한 AI 면접관이자, 이제는 지원자(사용자)의 면접 결과를 함께 리뷰하고 성장을 돕는 피드백 멘토입니다.
+      아래는 방금 진행된 모의 면접의 기록을 바탕으로 생성된 요약본입니다
+      
+      [면접 요약본]
+      ${existingMeeting.summary}
+      
+      아래는 면접 진행 당시 당신에게 부여되었던 원래의 역할 지침입니다.
+      사용자의 질문을 이해하는 '배경 지식'으로만 참고하고, 더 이상 사용자에게 새로운 면접 질문을 던지지는 마십시오:
 
-        const GPTResponse = await openaiClient.chat.completions.create({
-          messages: [
-            { role: "system", content: instructions },
-            ...previousMessages,
-            { role: "user", content: text },
-          ],
-          model: "gpt-4o",
-        });
+      [원래 역할 지침]
+      ${existingAgent.instructions}
+      
+      [당신의 임무 및 행동 지침]
+      1. 사용자는 자신의 면접 답변에 대한 피드백, 개선점, 혹은 추가 설명을 요청할 수 있습니다. 
+      2. 항상 위의 [면접 요약본]과 사용자와 나눈 [이전 대화 맥락]을 바탕으로 일관성 있게 답변하십시오.
+      3. 만약 사용자가 요약본에 없는 내용이나, 면접에서 다루지 않은 내용을 묻는다면, 정중하게 "해당 내용은 이번 면접 기록에 포함되어 있지 않다"고 안내하십시오. (절대 사실을 지어내지 마십시오)
+      4. 답변은 간결하고 건설적이어야 하며, 지원자가 실제로 도움을 받을 수 있는 실질적인 조언과 정확한 정보 제공에 집중하십시오.
+      `;
 
-        const GPTResponseText = GPTResponse.choices[0].message.content;
+      const processAIResponse = async () => {
+        try {
+          const channel = streamChat.channel("messaging", channelId);
+          await channel.watch();
 
-        if (GPTResponseText) {
-          const avatarUrl = generateAvatarUri({
-            seed: existingAgent.name,
-            variant: "botttsNeutral",
+          const previousMessages = channel.state.messages
+            .filter((msg) => msg.id !== currentMessageId && msg.text && msg.text.trim() !== "")
+            .slice(-5)
+            .map<ChatCompletionMessageParam>((message) => ({
+              role: message.user?.id === existingAgent.id ? "assistant" : "user",
+              content: message.text || "",
+            }));
+
+          const GPTResponse = await openaiClient.chat.completions.create({
+            messages: [
+              { role: "system", content: instructions },
+              ...previousMessages,
+              { role: "user", content: text },
+            ],
+            model: "gpt-4o",
           });
 
-          await streamChat.upsertUser({
-            id: existingAgent.id,
-            name: existingAgent.name,
-            image: avatarUrl,
-          });
-          await channel.sendMessage({
-            text: GPTResponseText,
-            user: { id: existingAgent.id, name: existingAgent.name, image: avatarUrl },
-          });
+          const GPTResponseText = GPTResponse.choices[0].message.content;
+
+          if (GPTResponseText) {
+            const avatarUrl = generateAvatarUri({
+              seed: existingAgent.name,
+              variant: "botttsNeutral",
+            });
+
+            await streamChat.upsertUser({
+              id: existingAgent.id,
+              name: existingAgent.name,
+              image: avatarUrl,
+            });
+
+            await channel.sendMessage({
+              text: GPTResponseText,
+              user: { id: existingAgent.id, name: existingAgent.name, image: avatarUrl },
+            });
+          }
+        } catch (error) {
+          console.error("AI 응답 처리 중 에러 발생:", error);
         }
-      }
+      };
+
+      processAIResponse();
     }
   }
-
   return NextResponse.json({ status: "ok" });
 }
