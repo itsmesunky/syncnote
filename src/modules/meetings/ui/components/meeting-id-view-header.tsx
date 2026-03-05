@@ -31,7 +31,7 @@ export const MeetingIdViewHeader = ({ meetingId, meetingName, onEdit, onRemove }
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild className="font-medium text-xl">
-              <Link href="/meetings">나의 면접</Link>
+              <Link href="/meetings">면접</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-foreground text-xl font-medium [&>svg]:size-4">

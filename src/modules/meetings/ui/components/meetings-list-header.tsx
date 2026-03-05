@@ -34,7 +34,7 @@ export const MeetingsListHeader = () => {
       <NewMeetingDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
       <div className="py-4 px-4 md:px-8 flex flex-col gap-y-4">
         <div className="flex items-center justify-between">
-          <h5 className="font-medium text-xl">나의 면접</h5>
+          <h5 className="font-medium text-xl">면접</h5>
           <Button onClick={() => setIsDialogOpen(true)}>
             <PlusIcon />
             새로운 면접 생성
