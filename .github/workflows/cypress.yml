@@ -11,8 +11,18 @@ jobs:
     env:
       NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+      GITHUB_CLIENT_ID: ${{ secrets.MY_GITHUB_CLIENT_ID }}
+      GITHUB_CLIENT_SECRET: ${{ secrets.MY_GITHUB_CLIENT_SECRET }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      NEXT_PUBLIC_STREAM_CHAT_API_KEY: ${{ secrets.NEXT_PUBLIC_STREAM_CHAT_API_KEY }}
+      STREAM_CHAT_SECRET_KEY: ${{ secrets.STREAM_CHAT_SECRET_KEY }}
+      NEXT_PUBLIC_STREAM_VIDEO_API_KEY: ${{ secrets.NEXT_PUBLIC_STREAM_VIDEO_API_KEY }}
+      STREAM_VIDEO_SECRET_KEY: ${{ secrets.STREAM_VIDEO_SECRET_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      POLAR_ACCESS_TOKEN: ${{ secrets.POLAR_ACCESS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
