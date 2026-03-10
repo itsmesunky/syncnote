@@ -57,7 +57,15 @@ export const SignUpView = () => {
         },
         onError: ({ error }) => {
           setPending(false);
-          setError(errorMap[error.code]);
+
+          const errorCode = error.code || "";
+
+          if (errorCode.includes("POLAR") && errorCode.includes("NOT_A_VALID_EMAIL")) {
+            setError("이메일 주소를 다시 확인해 주세요.");
+            return;
+          }
+
+          setError(errorMap[error.code] || "회원가입에 실패했습니다.");
         },
       },
     );
