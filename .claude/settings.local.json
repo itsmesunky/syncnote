@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(find src/modules/*/hooks -type f -name \"*.ts\")"
+    ]
+  }
+}

@@ -12,10 +12,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const customRender = async (
-  component: ReactElement,
-  options: Omit<RenderOptions, "wrapper"> = {},
-) => {
+const customRender = (component: ReactElement, options: Omit<RenderOptions, "wrapper"> = {}) => {
   const user = userEvent.setup();
 
   return {
