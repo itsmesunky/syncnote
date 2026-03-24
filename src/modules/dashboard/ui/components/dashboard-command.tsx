@@ -46,7 +46,7 @@ export const DashboardCommand = ({ open, setOpen }: Props) => {
         onValueChange={(value) => setSearch(value)}
       />
       <CommandList>
-        <CommandGroup heading="Meetings">
+        <CommandGroup heading="면접">
           <CommandEmpty>
             <span className="text-muted-foreground text-sm">면접이 존재하지 않습니다.</span>
           </CommandEmpty>
@@ -62,7 +62,7 @@ export const DashboardCommand = ({ open, setOpen }: Props) => {
             </CommandItem>
           ))}
         </CommandGroup>
-        <CommandGroup heading="Agents">
+        <CommandGroup heading="에이전트">
           <CommandEmpty>
             <span className="text-muted-foreground text-sm">에이전트가 존재하지 않습니다.</span>
           </CommandEmpty>
