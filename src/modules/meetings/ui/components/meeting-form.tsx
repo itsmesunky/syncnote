@@ -20,8 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useGetAgentInfo } from "@/modules/agents/hooks/queries/use-get-agent-info";
 import { NewAgentDialog } from "@/modules/agents/ui/components/new-agent-dialog";
 
 import { useCreateMeeting } from "../../hooks/mutations/use-create-meeting";
@@ -97,7 +95,12 @@ export const MeetingForm = ({ onSuccess, onCancel, initialValues }: MeetingFormP
       <NewAgentDialog open={openNewAgentDialog} onOpenChange={setOpenNewAgentDialog} />
       <Form {...methods}>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <FormInput control={control} fieldName="name" placeholder="" label="면접명" />
+          <FormInput
+            control={control}
+            fieldName="name"
+            placeholder="면접명을 입력해 주세요."
+            label="면접명"
+          />
           <FormField
             name="agentId"
             control={control}
