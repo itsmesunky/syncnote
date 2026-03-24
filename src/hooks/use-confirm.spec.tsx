@@ -28,9 +28,9 @@ describe("useConfirm 단위 테스트", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("confirm()을 호출하면 다이얼로그가 열려야 한다.", () => {
+  it("confirm()을 호출하면 다이얼로그가 열려야 한다.", async () => {
     const button = screen.getByRole("button", { name: "삭제" });
-    userEvent.click(button);
+    await userEvent.click(button);
     expect(screen.queryByRole("dialog")).toBeInTheDocument();
   });
 });
