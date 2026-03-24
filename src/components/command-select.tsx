@@ -45,6 +45,7 @@ export const CommandSelect = ({
   return (
     <>
       <Button
+        aria-label="dialog-open-button"
         onClick={() => setOpen(true)}
         type="button"
         variant="outline"

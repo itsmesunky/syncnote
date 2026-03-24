@@ -1,20 +1,16 @@
 import { botttsNeutral, initials } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 
-export const generateAvatarUri = ({
-  seed,
-  variant,
-}: {
-  seed: string;
-  variant: "botttsNeutral" | "initials";
-}) => {
-  let avatar;
+import { AvatarBase } from "@/types";
 
+export const getAvatarInstance = ({ seed, variant }: AvatarBase) => {
   if (variant === "botttsNeutral") {
-    avatar = createAvatar(botttsNeutral, { seed });
-  } else {
-    avatar = createAvatar(initials, { seed, fontWeight: 500, fontSize: 42 });
+    return createAvatar(botttsNeutral, { seed });
   }
 
-  return avatar.toDataUri();
+  return createAvatar(initials, { seed, fontWeight: 500, fontSize: 42 });
+};
+
+export const generateAvatarUri = ({ seed, variant }: AvatarBase) => {
+  return getAvatarInstance({ seed, variant }).toDataUri();
 };

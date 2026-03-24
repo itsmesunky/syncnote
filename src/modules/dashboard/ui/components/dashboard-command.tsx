@@ -1,22 +1,24 @@
-import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useState } from "react";
 
-import { 
-  CommandResponsiveDialog, 
-  CommandInput, 
-  CommandItem, 
-  CommandList,
+import { useRouter } from "next/navigation";
+
+import { useQuery } from "@tanstack/react-query";
+
+import { GeneratedAvatar } from "@/components/generated-avatar";
+import {
+  CommandEmpty,
   CommandGroup,
-  CommandEmpty
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandResponsiveDialog,
 } from "@/components/ui/command";
 import { useTRPC } from "@/trpc/client";
-import { GeneratedAvatar } from "@/components/generated-avatar";
 
 interface Props {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-};
+}
 
 export const DashboardCommand = ({ open, setOpen }: Props) => {
   const router = useRouter();
@@ -27,28 +29,26 @@ export const DashboardCommand = ({ open, setOpen }: Props) => {
     trpc.meetings.getMany.queryOptions({
       search,
       pageSize: 100,
-    })
+    }),
   );
   const agents = useQuery(
     trpc.agents.getMany.queryOptions({
       search,
       pageSize: 100,
-    })
+    }),
   );
 
   return (
     <CommandResponsiveDialog shouldFilter={false} open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Find a meeting or agent..."
+        placeholder="면접이나 에이전트를 검색해 보세요"
         value={search}
         onValueChange={(value) => setSearch(value)}
       />
       <CommandList>
-        <CommandGroup heading="Meetings">
+        <CommandGroup heading="면접">
           <CommandEmpty>
-            <span className="text-muted-foreground text-sm">
-              No meetings found
-            </span>
+            <span className="text-muted-foreground text-sm">면접이 존재하지 않습니다.</span>
           </CommandEmpty>
           {meetings.data?.items.map((meeting) => (
             <CommandItem
@@ -62,11 +62,9 @@ export const DashboardCommand = ({ open, setOpen }: Props) => {
             </CommandItem>
           ))}
         </CommandGroup>
-        <CommandGroup heading="Agents">
+        <CommandGroup heading="에이전트">
           <CommandEmpty>
-            <span className="text-muted-foreground text-sm">
-              No agents found
-            </span>
+            <span className="text-muted-foreground text-sm">에이전트가 존재하지 않습니다.</span>
           </CommandEmpty>
           {agents.data?.items.map((agent) => (
             <CommandItem
@@ -76,11 +74,7 @@ export const DashboardCommand = ({ open, setOpen }: Props) => {
               }}
               key={agent.id}
             >
-              <GeneratedAvatar
-                seed={agent.name}
-                variant="botttsNeutral"
-                className="size-5"
-              />
+              <GeneratedAvatar seed={agent.name} variant="botttsNeutral" className="size-5" />
               {agent.name}
             </CommandItem>
           ))}

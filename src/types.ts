@@ -8,3 +8,8 @@ export type UseMutationCallback = {
   onMutate?: () => void;
   onSettled?: () => void;
 };
+
+export type AvatarBase = {
+  seed: string;
+  variant: "botttsNeutral" | "initials";
+};
