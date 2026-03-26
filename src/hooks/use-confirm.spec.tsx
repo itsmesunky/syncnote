@@ -33,4 +33,13 @@ describe("useConfirm 단위 테스트", () => {
     await userEvent.click(button);
     expect(screen.queryByRole("dialog")).toBeInTheDocument();
   });
+
+  it("다이얼로그에서 취소 버튼 클릭 시 다이얼로그가 닫혀야 한다.", async () => {
+    const deleteButton = screen.getByRole("button", { name: "삭제" });
+    await userEvent.click(deleteButton);
+
+    const cancelButton = await screen.findByRole("button", { name: "취소" });
+    await userEvent.click(cancelButton);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
 });
