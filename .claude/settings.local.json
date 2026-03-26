@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
-      "Bash(find src/modules/*/hooks -type f -name \"*.ts\")"
+      "Bash(find src/modules/*/hooks -type f -name \"*.ts\")",
+      "Bash(npx vitest:*)",
+      "Bash(done)",
+      "Bash(npm ls:*)",
+      "Bash(node:*)"
     ]
   }
 }
