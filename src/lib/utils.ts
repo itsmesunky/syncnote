@@ -15,3 +15,7 @@ export function formatDuration(seconds: number) {
     language: "ko",
   });
 }
+
+export function assertNever(value: never): never {
+  throw new Error(`${value}는 정의되지 않은 value입니다.`);
+}

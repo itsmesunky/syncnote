@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useConfirm } from "@/hooks/use-confirm";
+import { assertNever } from "@/lib/utils";
 import { UpdateMeetingDialog } from "@/modules/agents/ui/components/update-meeting-dialog";
 
 import { useRemoveMeeting } from "../../hooks/mutations/use-remove-meeting";
@@ -43,13 +44,25 @@ export const MeetingIdView = ({ meetingId }: Props) => {
   const handleRemoveMeeting = async () => {
     const ok = await confirmRemove();
     if (!ok) return;
-    await removeMeeting({ id: meetingId });
+    try {
+      await removeMeeting({ id: meetingId });
+    } catch {}
   };
 
-  const isUpcoming = data.status === "upcoming";
-  const isActive = data.status === "active";
-  const isProcessing = data.status === "processing";
-  const isCompleted = data.status === "completed";
+  const renderStatus = () => {
+    switch (data.status) {
+      case "upcoming":
+        return <UpcomingState meetingId={meetingId} />;
+      case "active":
+        return <ActiveState />;
+      case "processing":
+        return <ProcessingState />;
+      case "completed":
+        return <CompletedState data={data} />;
+      default:
+        return assertNever(data.status);
+    }
+  };
 
   return (
     <>
@@ -66,10 +79,7 @@ export const MeetingIdView = ({ meetingId }: Props) => {
           onEdit={() => setUpdateMeetingDialogOpen(true)}
           onRemove={handleRemoveMeeting}
         />
-        {isUpcoming && <UpcomingState meetingId={meetingId} />}
-        {isActive && <ActiveState />}
-        {isProcessing && <ProcessingState />}
-        {isCompleted && <CompletedState data={data} />}
+        {renderStatus()}
       </div>
     </>
   );
