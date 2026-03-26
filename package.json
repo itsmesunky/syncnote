@@ -89,6 +89,7 @@
     "eslint-config-next": "15.5.12",
     "eslint-plugin-vitest": "^0.5.4",
     "jsdom": "^28.1.0",
+    "msw": "^2.12.14",
     "prettier": "3.8.1",
     "shadcn": "^3.8.5",
     "start-server-and-test": "^2.1.5",

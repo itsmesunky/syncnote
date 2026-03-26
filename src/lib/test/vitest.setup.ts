@@ -1,5 +1,29 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { setupServer } from "msw/node";
+
+import { handlers } from "@/mocks/handlers";
+
+export const server = setupServer(...handlers);
+
+beforeAll(() => {
+  server.listen();
+});
+
+afterEach(() => {
+  server.resetHandlers();
+  vi.clearAllMocks();
+});
+
+afterAll(() => {
+  vi.resetAllMocks();
+  server.close();
+});
+
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
@@ -10,8 +34,4 @@ Object.defineProperty(window, "matchMedia", {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
   })),
-});
-
-afterEach(() => {
-  cleanup();
 });
