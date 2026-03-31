@@ -46,7 +46,7 @@ export const AgentIdViewHeader = ({ agentId, agentName, onEdit, onRemove }: Prop
       </Breadcrumb>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
+          <Button variant="ghost" aria-label="에이전트 옵션">
             <MoreVerticalIcon />
           </Button>
         </DropdownMenuTrigger>
