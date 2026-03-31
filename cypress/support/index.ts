@@ -27,8 +27,8 @@ declare global {
 }
 
 Cypress.Commands.add("login", () => {
-  const id = "godns500@nate.com";
-  const pw = "qwer1234!";
+  const id = Cypress.env("TEST_USER_ID");
+  const pw = Cypress.env("TEST_USER_PW");
 
   cy.session(id, () => {
     cy.visit("/sign-in");
@@ -40,5 +40,5 @@ Cypress.Commands.add("login", () => {
 });
 
 Cypress.Commands.add("assertUrl", (path) => {
-  cy.location("pathname").should("eq", path);
+  cy.location("pathname", { timeout: 10000 }).should("eq", path);
 });

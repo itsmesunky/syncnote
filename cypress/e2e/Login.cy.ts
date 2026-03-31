@@ -11,8 +11,11 @@ describe("로그인 검증", () => {
   });
 
   it("가입된 이메일과 올바른 비밀번호를 입력하고 로그인 버튼 클릭 시, 로그인이 완료되고 면접 페이지(/meetings)로 리다이렉트된다.", () => {
-    cy.findByLabelText("이메일").type("godns500@nate.com");
-    cy.findByLabelText("비밀번호").type("qwer1234!");
+    const id = Cypress.env("TEST_USER_ID");
+    const pw = Cypress.env("TEST_USER_PW");
+
+    cy.findByLabelText("이메일").type(id);
+    cy.findByLabelText("비밀번호").type(pw);
     cy.findByRole("button", { name: "로그인" }).click();
     cy.assertUrl("/meetings");
   });
