@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -128,7 +129,7 @@ export const SignInView = () => {
             </Form>
           </div>
           <div className="relative hidden md:flex flex-col gap-y-4 items-center justify-center">
-            <img src="/logo.svg" alt="Image" className="h-[92px] w-[92px]" />
+            <Image src="/logo.svg" alt="SyncNote 로고" width={92} height={92} />
             <p className="text-2xl font-semibold text-white">SYNCNOTE</p>
           </div>
         </CardContent>
