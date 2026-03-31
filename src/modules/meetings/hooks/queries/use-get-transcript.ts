@@ -4,5 +4,5 @@ import { useTRPC } from "@/trpc/client";
 
 export const useGetTranscript = (id: string) => {
   const trpc = useTRPC();
-  return useQuery(trpc.meetings.getTranscript.queryOptions({ id }));
+  return useQuery({ ...trpc.meetings.getTranscript.queryOptions({ id }), staleTime: Infinity });
 };
