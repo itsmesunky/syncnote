@@ -6,7 +6,17 @@
       "Bash(npx vitest:*)",
       "Bash(done)",
       "Bash(npm ls:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(find . -maxdepth 2 -name middleware*)",
+      "Bash(ls src/app/\\\\\\(dashboard\\\\\\)/)",
+      "Bash(ls:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -n \"getUrl\\\\|baseUrl\\\\|localhost\\\\|api/trpc\" src/trpc/*.ts)",
+      "Bash(find src/modules/agents/hooks -name *.ts)",
+      "Bash(xargs find:*)",
+      "Bash(grep -r \"staleTime\\\\|gcTime\\\\|cacheTime\" /d/syncnote/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"ActiveState\\\\|CompletedState\\\\|CallProvider\" /d/syncnote/src --include=*.tsx -l)",
+      "Bash(grep -r \"setInterval\\\\|setTimeOut\" /d/syncnote/src --include=*.tsx --include=*.ts)"
     ]
   }
 }

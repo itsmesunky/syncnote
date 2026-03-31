@@ -47,7 +47,7 @@ const Page = async ({ params }: Props) => {
             />
           }
         >
-          <MeetingIdView meetingId={meetingId} />;
+          <MeetingIdView meetingId={meetingId} />
         </ErrorBoundary>
       </Suspense>
     </HydrationBoundary>

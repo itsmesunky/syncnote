@@ -116,4 +116,19 @@ export const agentsRouter = createTRPCRouter({
 
       return removedAgent;
     }),
+  cleanupTestAgents: protectedProcedure.mutation(async ({ ctx }) => {
+    if (process.env.NODE_ENV === "production") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "프로덕션 환경에서는 이 API를 호출할 수 없습니다.",
+      });
+    }
+
+    const removedAgents = await db
+      .delete(agents)
+      .where(and(eq(agents.userId, ctx.auth.user.id), ilike(agents.name, "%[E2E]%")))
+      .returning();
+
+    return removedAgents;
+  }),
 });

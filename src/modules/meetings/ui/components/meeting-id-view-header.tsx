@@ -46,7 +46,7 @@ export const MeetingIdViewHeader = ({ meetingId, meetingName, onEdit, onRemove }
       </Breadcrumb>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
+          <Button variant="ghost" aria-label="면접 옵션">
             <MoreVerticalIcon />
           </Button>
         </DropdownMenuTrigger>

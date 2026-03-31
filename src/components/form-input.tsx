@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { ComponentProps } from "react";
 
 import { Control, FieldPath, FieldValues } from "react-hook-form";
 

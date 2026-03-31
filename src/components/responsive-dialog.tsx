@@ -20,7 +20,7 @@ export const ResponsiveDialog = ({ title, description, children, open, onOpenCha
 
   if (isMobile) {
     return (
-      <Drawer data-testId="drawer-wrapper" open={open} onOpenChange={onOpenChange}>
+      <Drawer data-testid="drawer-wrapper" open={open} onOpenChange={onOpenChange}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>

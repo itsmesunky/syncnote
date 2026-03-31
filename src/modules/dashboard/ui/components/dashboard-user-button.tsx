@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { ChevronDownIcon, CreditCardIcon, LogOutIcon } from "lucide-react";
@@ -26,9 +28,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { authClient } from "@/lib/auth-client";
 
 export const DashboardUserButton = () => {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const isMobile = useIsMobile();
   const { data, isPending } = authClient.useSession();
+
+  useEffect(() => setMounted(true), []);
 
   const onLogout = () => {
     authClient.signOut({
@@ -40,7 +45,7 @@ export const DashboardUserButton = () => {
     });
   };
 
-  if (isPending || !data?.user) {
+  if (!mounted || isPending || !data?.user) {
     return null;
   }
 
@@ -84,7 +89,7 @@ export const DashboardUserButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        data-testId="profile-dropdown-trigger"
+        data-testid="profile-dropdown-trigger"
         className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between bg-white/5 hover:bg-white/10 overflow-hidden gap-x-2"
       >
         {data.user.image ? (

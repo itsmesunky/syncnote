@@ -299,4 +299,51 @@ export const meetingsRouter = createTRPCRouter({
 
       return transcriptWithSpeakers;
     }),
+  setTestMeetingStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum([
+          MeetingStatus.Upcoming,
+          MeetingStatus.Active,
+          MeetingStatus.Completed,
+          MeetingStatus.Processing,
+        ]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (process.env.NODE_ENV === "production") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "프로덕션 환경에서는 이 API를 호출할 수 없습니다.",
+        });
+      }
+
+      const [updatedMeeting] = await db
+        .update(meetings)
+        .set({ status: input.status })
+        .where(and(eq(meetings.id, input.id), eq(meetings.userId, ctx.auth.user.id)))
+        .returning();
+
+      if (!updatedMeeting) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Meeting not found" });
+      }
+
+      return updatedMeeting;
+    }),
+  cleanupTestMeetings: protectedProcedure.mutation(async ({ ctx }) => {
+    if (process.env.NODE_ENV === "production") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "프로덕션 환경에서는 이 API를 호출할 수 없습니다.",
+      });
+    }
+
+    const removedMeetings = await db
+      .delete(meetings)
+      .where(and(eq(meetings.userId, ctx.auth.user.id), ilike(meetings.name, "%[E2E]%")))
+      .returning();
+
+    return removedMeetings;
+  }),
 });
