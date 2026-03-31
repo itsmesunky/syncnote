@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { format } from "date-fns";
@@ -9,8 +8,7 @@ import {
   FileVideoIcon,
   SparklesIcon,
 } from "lucide-react";
-
-const Markdown = dynamic(() => import("react-markdown"), { ssr: false });
+import Markdown from "react-markdown";
 
 import { GeneratedAvatar } from "@/components/generated-avatar";
 import { Badge } from "@/components/ui/badge";
