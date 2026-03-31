@@ -8,7 +8,6 @@ import {
   VideoPreview,
   useCallStateHooks,
 } from "@stream-io/video-react-sdk";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { LogInIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
