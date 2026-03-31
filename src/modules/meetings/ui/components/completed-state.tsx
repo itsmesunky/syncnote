@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { format } from "date-fns";
@@ -8,7 +9,8 @@ import {
   FileVideoIcon,
   SparklesIcon,
 } from "lucide-react";
-import Markdown from "react-markdown";
+
+const Markdown = dynamic(() => import("react-markdown"), { ssr: false });
 
 import { GeneratedAvatar } from "@/components/generated-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +73,7 @@ export const CompletedState = ({ data }: Props) => {
         </TabsContent>
         <TabsContent value="recording">
           <div className="bg-white rounded-lg border px-4 py-5">
-            <video src={data.recordingUrl!} className="w-full rounded-lg" controls />
+            <video src={data.recordingUrl!} className="w-full rounded-lg" controls preload="none" />
           </div>
         </TabsContent>
         <TabsContent value="summary">
