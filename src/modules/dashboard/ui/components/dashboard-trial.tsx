@@ -12,8 +12,6 @@ export const DashboardTrial = () => {
   const trpc = useTRPC();
   const { data } = useQuery(trpc.premium.getFreeUsage.queryOptions());
 
-  console.log(data);
-
   if (!data) return null;
 
   return (
