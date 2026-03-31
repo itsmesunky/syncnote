@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { format } from "date-fns";
 import { SearchIcon } from "lucide-react";
@@ -20,8 +20,12 @@ export const Transcript = ({ meetingId }: Props) => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredData = (data ?? []).filter((item) =>
-    item.text.toString().toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredData = useMemo(
+    () =>
+      (data ?? []).filter((item) =>
+        item.text.toString().toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [data, searchQuery],
   );
 
   return (
