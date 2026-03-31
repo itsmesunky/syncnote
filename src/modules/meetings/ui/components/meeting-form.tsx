@@ -71,6 +71,9 @@ export const MeetingForm = ({ onSuccess, onCancel, initialValues }: MeetingFormP
 
   const { mutate: updateMeeting, isPending: isPendingUpdateMeeting } = useUpdateMeeting({
     onSuccess: () => {
+      toast.info("면접 정보가 수정되었어요.", {
+        position: "top-center",
+      });
       onSuccess?.();
     },
     onError: (error) => {
