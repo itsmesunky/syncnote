@@ -1,3 +1,5 @@
+import { memo, useMemo } from "react";
+
 import { generateAvatarUri } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { AvatarBase } from "@/types";
@@ -8,8 +10,8 @@ interface Props extends AvatarBase {
   className?: string;
 }
 
-export const GeneratedAvatar = ({ seed, variant, className }: Props) => {
-  const avatarUri = generateAvatarUri({ seed, variant });
+export const GeneratedAvatar = memo(({ seed, variant, className }: Props) => {
+  const avatarUri = useMemo(() => generateAvatarUri({ seed, variant }), [seed, variant]);
 
   return (
     <Avatar className={cn(className)}>
@@ -17,4 +19,4 @@ export const GeneratedAvatar = ({ seed, variant, className }: Props) => {
       <AvatarFallback>{seed.charAt(0).toUpperCase()}</AvatarFallback>
     </Avatar>
   );
-};
+});
