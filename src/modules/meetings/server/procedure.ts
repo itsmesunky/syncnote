@@ -312,10 +312,10 @@ export const meetingsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (process.env.NODE_ENV === "production") {
+      if (process.env.E2E_TEST !== "true") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "프로덕션 환경에서는 이 API를 호출할 수 없습니다.",
+          message: "E2E 테스트 환경에서만 사용할 수 있는 API입니다.",
         });
       }
 
@@ -332,10 +332,10 @@ export const meetingsRouter = createTRPCRouter({
       return updatedMeeting;
     }),
   cleanupTestMeetings: protectedProcedure.mutation(async ({ ctx }) => {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.E2E_TEST !== "true") {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "프로덕션 환경에서는 이 API를 호출할 수 없습니다.",
+        message: "E2E 테스트 환경에서만 사용할 수 있는 API입니다.",
       });
     }
 
