@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 
 import {
   CallEndedEvent,
@@ -277,7 +277,7 @@ export async function POST(req: NextRequest) {
         }
       };
 
-      await processAIResponse();
+      after(processAIResponse);
     }
   }
   return NextResponse.json({ status: "ok" });
