@@ -24,7 +24,7 @@
 
 <details open>
   <summary>📑 목차 보기</summary>
-  <div markdown=1">
+  <div markdown="1">
     
   - [프로젝트 기획 배경](#프로젝트-기획-배경)
   - [프로젝트 핵심 주도 영역](#프로젝트-핵심-주도-영역)
@@ -72,17 +72,25 @@
 
 ## 주요 기능
 
-| AI 면접관 커스터마이징 | 실시간 음성 면접 |
-| :---: | :---: |
-| ![ezgif-40677cfe6c0f8197](https://github.com/user-attachments/assets/6ebbf096-3a1a-472e-986f-8ed34dc13655) | <video src="https://github.com/user-attachments/assets/35a1df48-c0b8-481a-9703-d2eab57de16c" width="300" controls></video> |
-| 직무, 기술 스택, 난이도, 면접 스타일 설정 | WebRTC 기반 음성 통신 + AI 실시간 응답 (GPT-4o Realtime) |
+| AI 면접관 커스터마이징 |
+| :---: |
+| 직무, 기술 스택, 난이도, 면접 스타일 설정 |
+| ![ezgif-40677cfe6c0f8197](https://github.com/user-attachments/assets/6ebbf096-3a1a-472e-986f-8ed34dc13655) |
 
+| 실시간 음성 면접 |
+| :---: |
+| WebRTC 기반 음성 통신 + AI 실시간 응답 (GPT-4o Realtime) |
+| <video src="https://github.com/user-attachments/assets/35a1df48-c0b8-481a-9703-d2eab57de16c" width="300" controls></video> |
 
-| AI 피드백 리포트 | 면접 후 AI 채팅 |
-| :---: | :---: |
-| <img width="1412" height="927" alt="image" src="https://github.com/user-attachments/assets/f5aae25b-9d22-42fd-aa21-f88d80f426f3" />| ![ezgif-86ce6f08b8a3f12a](https://github.com/user-attachments/assets/c40fdc18-9f30-4f6c-b268-d0a9a1d1045a) |
-| 면접 종료 후 대화 기록을 백그라운드에서 분석해 총평·강점·개선점 등 제공 | 면접 내용을 컨텍스트로 활용한 추가 피드백 대화 |
+| AI 피드백 리포트 | 
+| :---: |
+| 면접 종료 후 대화 기록을 백그라운드에서 분석해 총평·강점·개선점 등 제공 |
+| <img width="1412" height="927" alt="image" src="https://github.com/user-attachments/assets/f5aae25b-9d22-42fd-aa21-f88d80f426f3" /> |
 
+| 면접 후 AI 채팅 |
+| :---: |
+| 면접 내용을 컨텍스트로 활용한 추가 피드백 대화 |
+| ![ezgif-86ce6f08b8a3f12a](https://github.com/user-attachments/assets/c40fdc18-9f30-4f6c-b268-d0a9a1d1045a) |
 
 ## 기술 스택
 
