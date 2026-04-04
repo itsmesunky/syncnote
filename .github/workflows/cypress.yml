@@ -25,6 +25,7 @@ jobs:
       POLAR_ACCESS_TOKEN: ${{ secrets.POLAR_ACCESS_TOKEN }}
       TEST_USER_ID: ${{ secrets.TEST_USER_ID }}
       TEST_USER_PW: ${{ secrets.TEST_USER_PW }}
+      E2E_TEST: "true"
 
     steps:
       - uses: actions/checkout@v4

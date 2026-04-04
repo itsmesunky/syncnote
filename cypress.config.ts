@@ -14,5 +14,6 @@ export default defineConfig({
     baseUrl,
     TEST_USER_ID: process.env.TEST_USER_ID,
     TEST_USER_PW: process.env.TEST_USER_PW,
+    E2E_TEST: process.env.E2E_TEST,
   },
 });
