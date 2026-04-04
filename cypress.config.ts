@@ -12,5 +12,7 @@ export default defineConfig({
   },
   env: {
     baseUrl,
+    TEST_USER_ID: process.env.TEST_USER_ID,
+    TEST_USER_PW: process.env.TEST_USER_PW,
   },
 });
