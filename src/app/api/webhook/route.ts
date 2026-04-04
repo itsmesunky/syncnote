@@ -277,7 +277,7 @@ export async function POST(req: NextRequest) {
         }
       };
 
-      processAIResponse();
+      await processAIResponse();
     }
   }
   return NextResponse.json({ status: "ok" });
