@@ -23,7 +23,7 @@ const Page = async ({ params }: Props) => {
   if (!session) redirect("/sign-in");
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.meetings.getOne.queryOptions({ id: meetingId }));
+  await queryClient.prefetchQuery(trpc.meetings.getOne.queryOptions({ id: meetingId }));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
