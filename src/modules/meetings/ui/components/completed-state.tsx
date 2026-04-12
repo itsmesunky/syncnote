@@ -1,4 +1,5 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 
 import { format } from "date-fns";
 import {
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import Markdown from "react-markdown";
 
+import { FallbackState } from "@/components/fallback-state";
 import { GeneratedAvatar } from "@/components/generated-avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -17,8 +19,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDuration } from "@/lib/utils";
 
 import { MeetingGetOne } from "../../types";
-import { ChatProvider } from "./chat-provider";
 import { Transcript } from "./transcript";
+
+const ChatProvider = dynamic(
+  () => import("./chat-provider").then((m) => m.ChatProvider),
+  {
+    loading: () => (
+      <FallbackState
+        type="loading"
+        title="대화 내용을 불러오고 있어요."
+        description="데이터를 불러오는 데 몇 초 정도 소요될 수 있습니다."
+      />
+    ),
+  },
+);
 
 interface Props {
   data: MeetingGetOne;
