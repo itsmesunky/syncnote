@@ -13,6 +13,7 @@ import {
   CommandList,
   CommandResponsiveDialog,
 } from "@/components/ui/command";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useTRPC } from "@/trpc/client";
 
 interface Props {
@@ -23,17 +24,18 @@ interface Props {
 export const DashboardCommand = ({ open, setOpen }: Props) => {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const trpc = useTRPC();
   const meetings = useQuery(
     trpc.meetings.getMany.queryOptions({
-      search,
+      search: debouncedSearch,
       pageSize: 100,
     }),
   );
   const agents = useQuery(
     trpc.agents.getMany.queryOptions({
-      search,
+      search: debouncedSearch,
       pageSize: 100,
     }),
   );

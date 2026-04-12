@@ -6,6 +6,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useTRPC } from "@/trpc/client";
 
 import { DataPagination } from "../../../../components/data-pagination";
@@ -17,8 +18,11 @@ export const AgentsView = () => {
   const router = useRouter();
 
   const [filters, setFilters] = useAgentsFilters();
+  const debouncedSearch = useDebounce(filters.search, 300);
 
-  const { data } = useSuspenseQuery(trpc.agents.getMany.queryOptions({ ...filters }));
+  const { data } = useSuspenseQuery(
+    trpc.agents.getMany.queryOptions({ ...filters, search: debouncedSearch }),
+  );
 
   const isAnyFilterModified = !!filters.search;
   const hasData = data.items.length > 0;
