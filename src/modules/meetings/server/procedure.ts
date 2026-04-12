@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
 import JSONL from "jsonl-parse-stringify";
 import z from "zod";
 
@@ -89,6 +89,7 @@ export const meetingsRouter = createTRPCRouter({
           ...getTableColumns(meetings),
           agent: agents,
           duration: sql<number>`EXTRACT(EPOCH FROM (ended_at - started_at))`.as("duration"),
+          totalCount: sql<number>`count(*) OVER()`.as("total_count"),
         })
         .from(meetings)
         .innerJoin(agents, eq(meetings.agentId, agents.id))
@@ -104,24 +105,13 @@ export const meetingsRouter = createTRPCRouter({
         .limit(pageSize)
         .offset((page - 1) * pageSize);
 
-      const [total] = await db
-        .select({ count: count() })
-        .from(meetings)
-        .innerJoin(agents, eq(meetings.agentId, agents.id))
-        .where(
-          and(
-            eq(meetings.userId, ctx.auth.user.id),
-            search ? ilike(meetings.name, `%${search}%`) : undefined,
-            status ? eq(meetings.status, status) : undefined,
-            agentId ? eq(meetings.agentId, agentId) : undefined,
-          ),
-        );
+      const totalCount = data[0]?.totalCount ?? 0;
 
-      const totalPages = Math.ceil(total.count / pageSize);
+      const totalPages = Math.ceil(totalCount / pageSize);
 
       return {
         items: data,
-        total: total.count,
+        total: totalCount,
         totalPages,
       };
     }),

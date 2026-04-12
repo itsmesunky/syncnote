@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, getTableColumns, ilike } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
 import z from "zod";
 
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@/constants";
@@ -40,6 +40,7 @@ export const agentsRouter = createTRPCRouter({
         .select({
           ...getTableColumns(agents),
           meetingCount: db.$count(meetings, eq(agents.id, meetings.agentId)),
+          totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
         })
         .from(agents)
         .where(
@@ -52,21 +53,12 @@ export const agentsRouter = createTRPCRouter({
         .limit(pageSize)
         .offset((page - 1) * pageSize);
 
-      const [total] = await db
-        .select({ count: count() })
-        .from(agents)
-        .where(
-          and(
-            eq(agents.userId, ctx.auth.user.id),
-            search ? ilike(agents.name, `%${search}%`) : undefined,
-          ),
-        );
-
-      const totalPages = Math.ceil(total.count / pageSize);
+      const totalCount = data[0]?.totalCount ?? 0;
+      const totalPages = Math.ceil(totalCount / pageSize);
 
       return {
         items: data,
-        total: total.count,
+        total: totalCount,
         totalPages,
       };
     }),
