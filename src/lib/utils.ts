@@ -1,5 +1,4 @@
 import { type ClassValue, clsx } from "clsx";
-import humanizeDuration from "humanize-duration";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -7,13 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDuration(seconds: number) {
-  return humanizeDuration(seconds * 1000, {
-    largest: 1,
-    round: true,
-    spacer: "",
-    units: ["h", "m", "s"],
-    language: "ko",
-  });
+  if (seconds >= 3600) return `${Math.round(seconds / 3600)}시간`;
+  if (seconds >= 60) return `${Math.round(seconds / 60)}분`;
+  return `${Math.round(seconds)}초`;
 }
 
 export function assertNever(value: never): never {
