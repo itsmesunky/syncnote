@@ -7,6 +7,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { DataPagination } from "@/components/data-pagination";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useTRPC } from "@/trpc/client";
 
 import { useMeetingsFilters } from "../../hooks/use-meetings-filters";
@@ -16,10 +17,12 @@ export const MeetingsView = () => {
   const trpc = useTRPC();
   const router = useRouter();
   const [filters, setFilters] = useMeetingsFilters();
+  const debouncedSearch = useDebounce(filters.search, 300);
 
   const { data } = useSuspenseQuery(
     trpc.meetings.getMany.queryOptions({
       ...filters,
+      search: debouncedSearch,
     }),
   );
 

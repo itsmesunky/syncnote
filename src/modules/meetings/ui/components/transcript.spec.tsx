@@ -5,6 +5,20 @@ import { server } from "@/lib/test/vitest.setup";
 
 import { Transcript } from "./transcript";
 
+vi.mock("@tanstack/react-virtual", () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, i) => ({
+        index: i,
+        key: i,
+        start: i * 100,
+        size: 100,
+      })),
+    getTotalSize: () => count * 100,
+    measureElement: () => {},
+  }),
+}));
+
 const mockTranscript = [
   {
     speaker_id: "user-1",

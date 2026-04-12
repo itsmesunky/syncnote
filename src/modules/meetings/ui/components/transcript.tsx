@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { format } from "date-fns";
 import { SearchIcon } from "lucide-react";
 import Highlighter from "react-highlight-words";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateAvatarUri } from "@/lib/avatar";
 
 import { useGetTranscript } from "../../hooks/queries/use-get-transcript";
@@ -28,6 +28,15 @@ export const Transcript = ({ meetingId }: Props) => {
     [data, searchQuery],
   );
 
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: filteredData.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 100,
+    overscan: 5,
+  });
+
   return (
     <div className="bg-white rounded-lg border px-4 py-5 flex flex-col gap-y-4 w-full">
       <p className="text-sm font-medium">대화 내용</p>
@@ -40,41 +49,57 @@ export const Transcript = ({ meetingId }: Props) => {
         />
         <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
       </div>
-      <ScrollArea>
-        <div className="flex flex-col gap-y-4">
-          {filteredData.map((item) => {
+      <div ref={parentRef} className="h-[500px] overflow-y-auto">
+        <div
+          style={{
+            height: virtualizer.getTotalSize(),
+            position: "relative",
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const item = filteredData[virtualItem.index];
             return (
               <div
-                key={item.start_ts}
-                className="flex flex-col gap-y-2 hover:bg-muted p-4 rounded-md border"
+                key={virtualItem.key}
+                ref={virtualizer.measureElement}
+                data-index={virtualItem.index}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
               >
-                <div className="flex gap-x-2 items-center">
-                  <Avatar className="size-6">
-                    <AvatarImage
-                      src={
-                        item.user.image ??
-                        generateAvatarUri({ seed: item.user.name, variant: "initials" })
-                      }
-                      alt="User Avatar"
-                    />
-                  </Avatar>
-                  <p className="text-sm font-medium">{item.user.name}</p>
-                  <p className="text-sm text-blue-500 font-medium">
-                    {format(new Date(0, 0, 0, 0, 0, 0, item.start_ts), "mm:ss")}
-                  </p>
+                <div className="flex flex-col gap-y-2 hover:bg-muted p-4 rounded-md border mb-4">
+                  <div className="flex gap-x-2 items-center">
+                    <Avatar className="size-6">
+                      <AvatarImage
+                        src={
+                          item.user.image ??
+                          generateAvatarUri({ seed: item.user.name, variant: "initials" })
+                        }
+                        alt="User Avatar"
+                      />
+                    </Avatar>
+                    <p className="text-sm font-medium">{item.user.name}</p>
+                    <p className="text-sm text-blue-500 font-medium">
+                      {format(new Date(0, 0, 0, 0, 0, 0, item.start_ts), "mm:ss")}
+                    </p>
+                  </div>
+                  <Highlighter
+                    className="text-sm text-neutral-700"
+                    highlightClassName="bg-yellow-200"
+                    searchWords={[searchQuery]}
+                    autoEscape={true}
+                    textToHighlight={item.text}
+                  />
                 </div>
-                <Highlighter
-                  className="text-sm text-neutral-700"
-                  highlightClassName="bg-yellow-200"
-                  searchWords={[searchQuery]}
-                  autoEscape={true}
-                  textToHighlight={item.text}
-                />
               </div>
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
