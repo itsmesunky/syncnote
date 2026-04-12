@@ -24,6 +24,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@inngest/agent-kit": "^0.13.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@next/bundle-analyzer": "^16.2.3",
     "@polar-sh/better-auth": "^1.8.2",
     "@polar-sh/sdk": "^0.46.1",
     "@stream-io/node-sdk": "^0.7.43",
@@ -36,7 +37,6 @@
     "@trpc/client": "^11.10.0",
     "@trpc/server": "^11.10.0",
     "@trpc/tanstack-react-query": "^11.10.0",
-    "@types/humanize-duration": "^3.27.4",
     "better-auth": "^1.4.19",
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
@@ -45,7 +45,6 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
-    "humanize-duration": "^3.33.2",
     "inngest": "^3.52.6",
     "jsonl-parse-stringify": "^1.0.3",
     "lucide-react": "^0.575.0",
@@ -70,6 +69,12 @@
     "vite-tsconfig-paths": "^6.1.1",
     "zod": "^4.3.6"
   },
+  "browserslist": [
+    "chrome >= 93",
+    "firefox >= 90",
+    "safari >= 15",
+    "edge >= 93"
+  ],
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.2.1",
