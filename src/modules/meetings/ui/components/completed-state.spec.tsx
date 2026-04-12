@@ -61,7 +61,7 @@ describe("CompletedState 컴포넌트", () => {
 
     await user.click(screen.getByRole("tab", { name: /Ask AI/ }));
 
-    expect(screen.getByText("ChatProvider 모킹")).toBeInTheDocument();
+    expect(await screen.findByText("ChatProvider 모킹")).toBeInTheDocument();
   });
 
   it("'녹화본' 탭 클릭 시 비디오가 렌더링되어야 한다.", async () => {
