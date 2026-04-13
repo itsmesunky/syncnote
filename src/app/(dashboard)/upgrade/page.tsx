@@ -21,7 +21,7 @@ const Page = async () => {
   }
 
   const queryClient = getQueryClient();
-  await Promise.all([
+  void Promise.all([
     queryClient.prefetchQuery(trpc.premium.getCurrentSubscription.queryOptions()),
     queryClient.prefetchQuery(trpc.premium.getProducts.queryOptions()),
   ]);
