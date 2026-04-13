@@ -26,7 +26,7 @@ const Page = async ({ params }: Props) => {
 
   const { agentId } = await params;
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery(trpc.agents.getOne.queryOptions({ id: `${agentId}` }));
+  void queryClient.prefetchQuery(trpc.agents.getOne.queryOptions({ id: `${agentId}` }));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
